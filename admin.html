@@ -555,30 +555,35 @@
         }
 
         function atualizarOnline(id, timestamp) {
-            if (!Number.isFinite(Number(timestamp))) return;
-            let ts = Number(timestamp);
-            if (ts > 100000000000) ts = Math.floor(ts / 1000);
+    if (!Number.isFinite(Number(timestamp))) return;
+    let ts = Number(timestamp);
+    
+    // Converte milissegundos para segundos se necessário
+    if (ts > 100000000000) ts = Math.floor(ts / 1000);
 
-            const segundos = Math.floor(Date.now() / 1000) - ts;
-            const online = segundos >= 0 && segundos < 60;
+    const agoraSegundos = Math.floor(Date.now() / 1000);
+    const segundosDiferenca = agoraSegundos - ts;
 
-            const elemento = document.getElementById(`online-${id}`);
-            const hora = document.getElementById(`seen-${id}`);
+    const elemento = document.getElementById(`online-${id}`);
+    const hora = document.getElementById(`seen-${id}`);
 
-            if (!elemento) return;
+    if (!elemento) return;
 
-            if (online) {
-                elemento.textContent = "● Online";
-                elemento.className = "text-sm text-emerald-600 font-bold";
-            } else {
-                elemento.textContent = "● Offline";
-                elemento.className = "text-sm text-rose-600 font-bold";
-            }
+    // Tolerância ampliada para redes móveis (até 120s e -10s para pequenos desvios NTP)
+    const estaOnline = segundosDiferenca >= -10 && segundosDiferenca < 120;
 
-            if (hora) {
-                hora.textContent = new Date(ts * 1000).toLocaleTimeString("pt-BR");
-            }
-        }
+    if (estaOnline) {
+        elemento.textContent = "● Online";
+        elemento.className = "text-sm text-emerald-600 font-bold";
+    } else {
+        elemento.textContent = "● Offline";
+        elemento.className = "text-sm text-rose-600 font-bold";
+    }
+
+    if (hora) {
+        hora.textContent = new Date(ts * 1000).toLocaleTimeString("pt-BR");
+    }
+}
 
         function abrirModal() {
             editando = false;
