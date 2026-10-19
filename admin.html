@@ -569,8 +569,8 @@
 
     if (!elemento) return;
 
-    // Tolerância ampliada para redes móveis (até 120s e -10s para pequenos desvios NTP)
-    const estaOnline = segundosDiferenca >= -10 && segundosDiferenca < 120;
+    // TOLERÂNCIA AJUSTADA: 75 segundos (60s do envio do ESP32 + 15s de margem de rede móvel)
+    const estaOnline = segundosDiferenca >= -10 && segundosDiferenca <= 75;
 
     if (estaOnline) {
         elemento.textContent = "● Online";
@@ -584,6 +584,20 @@
         hora.textContent = new Date(ts * 1000).toLocaleTimeString("pt-BR");
     }
 }
+
+// ATUALIZAÇÃO EM TEMPO REAL: Checa os status a cada 5 segundos na tela
+setInterval(() => {
+    Object.keys(listeners).forEach(rota => {
+        if (rota.includes("last_seen")) {
+            db.ref(rota).once("value", snapshot => {
+                const ts = snapshot.val();
+                // Extrai o ID do sensor a partir da rota
+                const sensorID = rota.replace("last_seen", "").replace("/", "") || "SENSOR_01";
+                if (ts) atualizarOnline(sensorID, ts);
+            });
+        }
+    });
+}, 5000);
 
         function abrirModal() {
             editando = false;
